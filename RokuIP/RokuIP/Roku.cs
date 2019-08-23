@@ -12,21 +12,23 @@ namespace RokuIP
 {
     public class Roku
     {
+
+        RokuEventArgs rokuEventArgs;
         List<sAppInfo> appList;
         int listSize;
-
+ 
         string baseRequest = "";
         string requestBody = "";
         string description = "";
         static int numRokus;
         
-        #region Roku IP Connection
+        #region Roku IP Connection -- Done
         HttpClient rokuHttpClient;
         string hostAddress;
         int portNumber;
         #endregion
 
-        #region Roku XML Parser
+        #region Roku XML Parser -- Done
         XmlReader rokuXMLReader;
         #endregion
 
@@ -34,12 +36,16 @@ namespace RokuIP
         /// SIMPL+ can only execute the default constructor. If you have variables that require initialization, please
         /// use an Initialize method
         /// </summary>
+        /// 
+
+        //Completed
         public Roku(string Host, int Port, string Description)
         {
             try
             {
                 // IP Address, Port Number -- Username && Password??
                 appList = new List<sAppInfo>(); //Instantiate App List
+                rokuEventArgs = new RokuEventArgs();
 
                 if (Port == 0)
                 {
@@ -114,7 +120,7 @@ namespace RokuIP
 
         }
 
-        //Send Remote Command
+        //Send Remote Control Command
         public void MakeRequest(eRokuRequest RequestToMake, eRokuKeyCommand KeyCommand)
         {
             //TODO: Make a request to the Roku
@@ -203,6 +209,7 @@ namespace RokuIP
                         if (listSize != appList.Count)
                         {
                             getAppIcons = true;
+                            rokuEventArgs.applicationList = appList;
                             listSize = appList.Count;
                         }
                         break;
@@ -234,24 +241,16 @@ namespace RokuIP
                         }
                     }
                     break;
-                case eRokuRequest.GetIconByApp:
-                    break;
-                case eRokuRequest.KeyPress_Down:
-                    break;
-                case eRokuRequest.KeyPress_Up:
-                    break;
-                case eRokuRequest.KeyPress_Key:
-                    break;
-                case eRokuRequest.Launch_App:
-                    break;
-                case eRokuRequest.Install_App:
-                    break;
                 default:
                     break;
             }
             if (getAppIcons)
             {
                 //TODO: Request App Icon List
+                if (onResponseProcessed != null)
+                {
+                    onResponseProcessed(this, rokuEventArgs);
+                }
             }
         }
 
@@ -280,12 +279,7 @@ namespace RokuIP
             Launch_App,
             Install_App
         }
-
-        public enum eRokuResponseType
-        {
-            //TODO: List of all responses that the Roku may return
-        }
-
+        
         public enum eRokuKeyCommand
         {
               Home,
@@ -307,17 +301,6 @@ namespace RokuIP
 
         #endregion
 
-        #region Structore
-
-        private struct sAppInfo
-        {
-            public string appName { get; set; }
-            public string appIcon { get; set; }
-            public string appId { get; set; }
-        }
-
-        #endregion
-
         #region Event
         public event EventHandler<RokuEventArgs> onResponseProcessed;
         #endregion
@@ -325,7 +308,33 @@ namespace RokuIP
 
     public class RokuEventArgs : EventArgs
     {
-        //TODO: Event Arguments for Roku
+        public string rokuName { get; set; }
+        public List<sAppInfo> applicationList { get; set; }
+        public eRokuRequest requestMade { get; set; }
     }
+
+    public enum eRokuRequest
+    {
+        //TODO: List of Requests which can be made to the Roku Device
+        GetAppList,
+        GetActiveApp,
+        GetIconByApp,
+        KeyPress_Down,
+        KeyPress_Up,
+        KeyPress_Key,
+        Launch_App,
+        Install_App
+    }
+
+    #region Structore
+
+    public struct sAppInfo
+    {
+        public string appName { get; set; }
+        public string appIcon { get; set; }
+        public string appId { get; set; }
+    }
+
+    #endregion
 
 }
