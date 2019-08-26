@@ -1,0 +1,9 @@
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\Roku Test.dll
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\Roku Test.pdb
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\SimplSharpCustomAttributesInterface.dll
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\SimplSharpHelperInterface.dll
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\SimplSharpPro.exe
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\obj\Debug\Roku Test.dll
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\obj\Debug\Roku Test.pdb
