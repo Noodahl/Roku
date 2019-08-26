@@ -173,6 +173,8 @@ namespace RokuIP
 
         #region Process Response
         //Process Response from Roku
+
+
         private void ProcessResponse(string Response, eRokuRequest RequestMade)
         {
             rokuXMLReader = new XmlReader(Response);
