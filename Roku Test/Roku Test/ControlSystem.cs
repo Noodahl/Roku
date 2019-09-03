@@ -45,7 +45,7 @@ namespace Roku_Test
 
             if (testRoku != null)
             {
-                if (Request.ToUpper().Contains("LAUNCH");)
+                if (Request.ToUpper().Contains("LAUNCH"))
                 {
                     string[] pieces = Request.Split(' ');
                     CrestronConsole.PrintLine(Request);
