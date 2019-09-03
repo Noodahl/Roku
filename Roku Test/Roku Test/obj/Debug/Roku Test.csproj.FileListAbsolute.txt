@@ -7,3 +7,5 @@ C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\SimplSharp
 C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\obj\Debug\ResolveAssemblyReference.cache
 C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\obj\Debug\Roku Test.dll
 C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\obj\Debug\Roku Test.pdb
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\Test UI.sgd
+C:\Users\dantoine\Documents\GitHub\Roku\Roku Test\Roku Test\bin\Debug\Crestron.SimplSharpPro.UI.dll

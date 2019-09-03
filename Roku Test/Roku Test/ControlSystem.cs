@@ -4,13 +4,18 @@ using Crestron.SimplSharpPro;                       	// For Basic SIMPL#Pro clas
 using Crestron.SimplSharpPro.CrestronThread;        	// For Threading
 using Crestron.SimplSharpPro.Diagnostics;		    	// For System Monitor Access
 using Crestron.SimplSharpPro.DeviceSupport;         	// For Generic Device Support
+using Crestron.SimplSharpPro.UI;
+using Crestron.SimplSharp.CrestronIO;
 
 namespace Roku_Test
 {
     public class ControlSystem : CrestronControlSystem
     {
         Roku testRoku;
+        BitConverter bitConverter;
         
+        Ts1542 testPanel;
+
         public ControlSystem()
             : base()
         {
@@ -24,6 +29,9 @@ namespace Roku_Test
                 CrestronEnvironment.ProgramStatusEventHandler += new ProgramStatusEventHandler(ControlSystem_ControllerProgramEventHandler);
                 CrestronEnvironment.EthernetEventHandler += new EthernetEventHandler(ControlSystem_ControllerEthernetEventHandler);
                 CrestronConsole.AddNewConsoleCommand(RokuRequest, "MakeRequest", "Make a Request to the Roku Device", ConsoleAccessLevelEnum.AccessAdministrator);
+                ErrorLog.Notice("Application Directory is: {0}", Directory.GetApplicationDirectory());
+                ErrorLog.Notice("Application Root Directory is: {0}", Directory.GetApplicationRootDirectory());
+                
             }
             catch (Exception e)
             {
@@ -33,32 +41,43 @@ namespace Roku_Test
 
         public void RokuRequest(string Request)
         {
+            CrestronConsole.PrintLine(Request);
+
             if (testRoku != null)
             {
-                switch (Request.ToUpper())
+                if (Request.ToUpper().Contains("LAUNCH");)
                 {
-                    case "APPS":
-                        {
-                            testRoku.MakeRequest(Roku.eRokuRequest.GetAppList);
+                    string[] pieces = Request.Split(' ');
+                    CrestronConsole.PrintLine(Request);
+                    testRoku.MakeRequest(Roku.eRokuRequest.Launch_App, pieces[1]);
+                }
+                else
+                {
+                    switch (Request.ToUpper())
+                    {
+                        case "APPS":
+                            {
+                                testRoku.MakeRequest(Roku.eRokuRequest.GetAppList);
+                                break;
+                            }
+                        case "UP":
+                            {
+                                testRoku.MakeRequest(Roku.eRokuRequest.KeyPress_Key, Roku.eRokuKeyCommand.Down);
+                                break;
+                            }
+                        case "DOWN":
+                            {
+                                testRoku.MakeRequest(Roku.eRokuRequest.KeyPress_Key, Roku.eRokuKeyCommand.Up);
+                                break;
+                            }
+                        case "HOME":
+                            {
+                                testRoku.MakeRequest(Roku.eRokuRequest.KeyPress_Key, Roku.eRokuKeyCommand.Home);
+                                break;
+                            }
+                        default:
                             break;
-                        }
-                    case "UP":
-                        {
-                            testRoku.MakeRequest(Roku.eRokuRequest.KeyPress_Key, Roku.eRokuKeyCommand.Down);
-                            break;
-                        }
-                    case "DOWN":
-                        {
-                            testRoku.MakeRequest(Roku.eRokuRequest.KeyPress_Key, Roku.eRokuKeyCommand.Up);
-                            break;
-                        }
-                    case "HOME":
-                        {
-                            testRoku.MakeRequest(Roku.eRokuRequest.KeyPress_Key, Roku.eRokuKeyCommand.Home);
-                            break;
-                        }
-                    default:
-                        break;
+                    }
                 }
             }
         }
@@ -67,9 +86,24 @@ namespace Roku_Test
         {
             try
             {
-                testRoku = new Roku("10.64.57.140", 8060, "Test Rokue");
+
+                testRoku = new Roku("172.22.253.234", 8060, "Test Rokue", CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, 0));
                 testRoku.onResponseProcessed += new EventHandler<RokuEventArgs>(testRokue_onResponseProcessed);
 
+                testPanel = new Ts1542(0x03, this);
+
+                if (testPanel.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+                {
+                    ErrorLog.Notice("Error Registering Panel, Reason: {0}", testPanel.RegistrationFailureReason);
+                }
+                else
+                {
+                    testPanel.LoadSmartObjects(string.Format(@"{0}\Test UI.sgd", Directory.GetApplicationDirectory()));
+                    foreach (var so in testPanel.SmartObjects)
+                    {
+                        so.Value.SigChange += new SmartObjectSigChangeEventHandler(Value_SigChange);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -77,14 +111,25 @@ namespace Roku_Test
             }
         }
 
+        void Value_SigChange(GenericBase currentDevice, SmartObjectEventArgs args)
+        {
+            CrestronConsole.PrintLine("Button {0} on {1} pressed", args.Sig.Name, args.SmartObjectArgs.ID);
+        }
+
         void testRokue_onResponseProcessed(object sender, RokuEventArgs e)
         {
+            int offset;
             switch (e.requestMade)
             {
-                case eRokuRequest.GetActiveApp:
+                case eRokuRequest.GetAppList:
+                    testPanel.SmartObjects[2].UShortInput["Set Number of Items"].UShortValue = (ushort)e.applicationList.Count;
+                    ErrorLog.Notice("Number of Apps is: {0}", e.applicationList.Count);
                     foreach (var app in e.applicationList)
                     {
-                        CrestronConsole.PrintLine(app.appName);
+                        offset = (e.applicationList.IndexOf(app) * 2) + 1;
+                        CrestronConsole.PrintLine(string.Format("App Name: {0} Image URL: {1} -- {2}", app.appName, app.appIcon, app.appId));
+                        testPanel.SmartObjects[2].StringInput[string.Format("text-o{0}", offset)].StringValue = app.appName;
+                        testPanel.SmartObjects[2].StringInput[string.Format("text-o{0}",offset + 1)].StringValue = app.appIcon;
                     }
                     break;
                 default:
@@ -102,12 +147,13 @@ namespace Roku_Test
                     if (ethernetEventArgs.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
                     {
                         //
+                        
                     }
                     break;
                 case (eEthernetEventType.LinkUp):
                     if (ethernetEventArgs.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
                     {
-
+                        
                     }
                     break;
             }

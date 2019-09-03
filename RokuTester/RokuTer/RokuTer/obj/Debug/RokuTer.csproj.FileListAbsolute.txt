@@ -1,0 +1,9 @@
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\bin\Debug\RokuTer.exe
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\bin\Debug\RokuTer.pdb
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\bin\Debug\SimplSharpHelperInterface.dll
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\bin\Debug\SimplSharpCustomAttributesInterface.dll
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\bin\Debug\SimplSharpCustomAttributesInterface.xml
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\bin\Debug\SimplSharpHelperInterface.xml
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\obj\Debug\RokuTer.exe
+C:\Users\dantoine\Documents\GitHub\Roku\RokuTester\RokuTer\RokuTer\obj\Debug\RokuTer.pdb

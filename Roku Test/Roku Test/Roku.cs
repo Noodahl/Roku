@@ -5,6 +5,7 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.CrestronXml;
+using Crestron.SimplSharp.CrestronIO;
 
 namespace Roku_Test
 {
@@ -13,12 +14,14 @@ namespace Roku_Test
 
         RokuEventArgs rokuEventArgs;
         List<sAppInfo> appList;
+        List<sAppInfo> completeAppList = new List<sAppInfo>();
         int listSize;
 
         string baseRequest = "";
         string requestBody = "";
         string description = "";
         static int numRokus;
+        string processorIPAddress = "";
 
         #region Roku IP Connection -- Done
         HttpClient rokuHttpClient;
@@ -37,7 +40,8 @@ namespace Roku_Test
         /// 
 
         //Completed
-        public Roku(string Host, int Port, string Description)
+        #region Instantiation
+        public Roku(string Host, int Port, string Description, string ProcessorIPAddress)
         {
             try
             {
@@ -52,11 +56,14 @@ namespace Roku_Test
 
                 baseRequest = string.Format(@"http://{0}:{1}/", Host, Port);
                 description = Description;
+                rokuEventArgs.rokuName = description;
                 rokuHttpClient = new HttpClient();
                 rokuHttpClient.HostAddress = Host;
                 rokuHttpClient.Port = Port;
+                processorIPAddress = ProcessorIPAddress;
                 //TODO: Define the necessary information for this Roku device
                 numRokus++;
+                ClearAppList();
             }
             catch (Exception e)
             {
@@ -64,7 +71,27 @@ namespace Roku_Test
             }
         }
 
-        #region Prepare Get Request
+        public void ClearAppList()
+        {
+            try
+            {
+                foreach (var file in Directory.GetFiles(string.Format(@"HTML\{0}", description)))
+                {
+                    File.Delete(file);
+                }
+            }
+            catch (Exception e)
+            {
+                ErrorLog.Notice("Error Updating Roku {}'s Applications, Reason: {0}", e.Message);
+            }
+        }
+        #endregion
+
+        #region Control roku
+        
+        #endregion
+
+        #region Prepare body of Request
         //Prepare the body of the request for the Roku
         public void MakeRequest(eRokuRequest RequestToMake)
         {
@@ -87,18 +114,6 @@ namespace Roku_Test
                     case eRokuRequest.GetIconByApp:
                         requestBody = "query/icon/";
                         break;
-                    case eRokuRequest.KeyPress_Down:
-                        requestBody = "keydown/key";
-                        break;
-                    case eRokuRequest.KeyPress_Up:
-                        requestBody = "keyup/key";
-                        break;
-                    case eRokuRequest.KeyPress_Key:
-                        requestBody = "keypress/";
-                        break;
-                    case eRokuRequest.Launch_App:
-                        requestBody = "launch/";
-                        break;
                     case eRokuRequest.Install_App:
                         requestBody = "install/";
                         break;
@@ -108,6 +123,35 @@ namespace Roku_Test
 
                 if (requestBody != "")
                 {
+                    SendRequest(baseRequest + requestBody, RequestToMake);
+                }
+            }
+            catch (Exception e)
+            {
+                ErrorLog.Notice("Error Sending Request, Reason: {0}", e.Message);
+            }
+
+        }
+
+        public void MakeRequest(eRokuRequest RequestToMake, string AppID)
+        {
+            //TODO: Make a request to the Roku
+            requestBody = "";
+            try
+            {
+                switch (RequestToMake)
+                {                   
+                    case eRokuRequest.Launch_App:
+                        requestBody = "launch/";
+                        requestBody += AppID;
+                        break;
+                    default:
+                        break;
+                }
+
+                if (requestBody != "")
+                {
+                    CrestronConsole.PrintLine(requestBody);
                     SendRequest(baseRequest + requestBody, RequestToMake);
                 }
             }
@@ -131,6 +175,16 @@ namespace Roku_Test
                         requestBody = "keypress/" + KeyCommand.ToString();
                         ErrorLog.Notice("Command Set to: {0}", requestBody);
                         break;
+                    case eRokuRequest.KeyPress_Down:
+                        {
+                            requestBody = "keypdown/" + KeyCommand.ToString();
+                            break;
+                        }
+                    case eRokuRequest.KeyPress_Up:
+                        {
+                            requestBody = "keypdown/" + KeyCommand.ToString();
+                            break;
+                        }
                     default:
                         break;
                 }
@@ -160,7 +214,8 @@ namespace Roku_Test
                 switch (RequestMade)
                 {
                     case eRokuRequest.GetAppList:
-                        response = rokuHttpClient.Get(Request);
+                        response = rokuHttpClient.Get(Request, Encoding.ASCII);
+                       
                         break;
                     case eRokuRequest.GetActiveApp:
                         break;
@@ -176,6 +231,7 @@ namespace Roku_Test
                         response = rokuHttpClient.Post(Request, new byte[] { });
                         break;
                     case eRokuRequest.Launch_App:
+                        rokuHttpClient.Post(Request, new byte[] { });
                         break;
                     case eRokuRequest.Install_App:
                         break;
@@ -221,11 +277,13 @@ namespace Roku_Test
                                             //CrestronConsole.PrintLine("Attrinbute is {0}", rokuXMLReader.Name);
                                             if (rokuXMLReader.Name.ToLower() == "id")
                                             {
-                                                CrestronConsole.PrintLine("5");
                                                 sAppInfo appInfo = new sAppInfo();
                                                 appInfo.appId = rokuXMLReader.Value;
                                                 appInfo.appName = rokuXMLReader.ReadString();
-                                                appList.Add(appInfo);
+                                                if (!appList.Contains(appInfo))
+                                                {
+                                                    appList.Add(appInfo);
+                                                }                                                
                                                 ErrorLog.Notice("App: {0} with ID: {1} added to List", appInfo.appName, appInfo.appId);
                                                 //Get Icon after the List has been generated
                                             }
@@ -236,12 +294,12 @@ namespace Roku_Test
                                     break;
                             }
                         }
-                        if (listSize != appList.Count)
-                        {
+                        //if (listSize != appList.Count)
+                        //{
                             getAppIcons = true;
                             rokuEventArgs.applicationList = appList;
                             listSize = appList.Count;
-                        }
+                        //}
                         break;
                     }
                 case eRokuRequest.GetActiveApp:
@@ -277,39 +335,74 @@ namespace Roku_Test
             if (getAppIcons)
             {
                 //TODO: Request App Icon List
-                if (onResponseProcessed != null)
-                {
-                    onResponseProcessed(this, rokuEventArgs);
-                    UpdateIcons();
-                }
+               UpdateIcons();
             }
         }
-
+       
         private void UpdateIcons()
         {
             //TODO: Move to a Thread
-            string iconURL = "";
+            byte[] iconData;
             int appIndex;
+            string iconFileName = "";
             sAppInfo tempAppInfo;
-            byte[] tempURLArray;
             try
             {
-                foreach (var app in appList)
+                if (appList.Count != 0)
                 {
-                    tempAppInfo = app;
-                    appIndex = appList.IndexOf(app) - 1;
-                    iconURL = rokuHttpClient.Get(baseRequest + "query/icon/" + app.appId);
-                    CrestronConsole.PrintLine("App Icon URL is: {0}", iconURL);
-                    appList.Remove(app);
-                    //tempAppInfo.appIcon = Encoding.ASCII.GetString(new byte[]{iconURL}, 0, iconURL.Length);
-                    appList.Insert(appIndex, tempAppInfo);
-                    CrestronConsole.PrintLine("App {0} - {1} - {2} added at Index {3}", tempAppInfo.appName, tempAppInfo.appId, tempAppInfo.appIcon, appIndex);
+                    foreach (var app in appList)
+                    {
+                        tempAppInfo = app;
+                        appIndex = appList.IndexOf(app);
+                        iconData = rokuHttpClient.GetBytes(baseRequest + "query/icon/" + app.appId);
+                        iconFileName = writeToFile(iconData, app.appName);
+                        if (iconFileName != "")
+                        {
+                            CrestronConsole.PrintLine("File Name = {0}", iconFileName);
+                            tempAppInfo.appIcon = iconFileName;
+                            completeAppList.Add(tempAppInfo);
+                            //CrestronConsole.PrintLine("App {0} - {1} - {2} added at Index {3}", tempAppInfo.appName, tempAppInfo.appId, tempAppInfo.appIcon, appIndex);
+                        }                        
+                    }
+                    rokuEventArgs.requestMade = Roku_Test.eRokuRequest.GetAppList;
+                    rokuEventArgs.applicationList = completeAppList;
+
+                    if (onResponseProcessed != null)
+                    {
+                        onResponseProcessed(this, rokuEventArgs);
+                    }
                 }
             }
             catch (Exception e)
             {
                 ErrorLog.Notice("Error requesting App Icon, reason: {0}", e.Message);
             }            
+        }
+
+        private string writeToFile(byte[] Content, string IconName)
+        {
+            FileStream createIcon;
+            string fileName = "";
+            try
+            {
+                fileName = string.Format(@"\HTML\{0}\{1}.png", this.description, IconName);
+                //recallFileName = string.Format(@"\\NVRAM\{0}.png", IconName);
+
+                if (!File.Exists(fileName))
+                {
+                    using (createIcon = new FileStream(fileName, FileMode.CreateNew))
+                    {
+                        createIcon.Write(Content, 0, Content.Length);
+                        return string.Format(@"http://{0}\{1}\{2}.png", processorIPAddress,this.description, IconName);
+                    }
+                }                              
+            }
+            catch (Exception e)
+            {
+                ErrorLog.Notice("Error Writing to file, Reason: {0}", e.Message);
+            }
+
+            return "";
         }
         #endregion
 
