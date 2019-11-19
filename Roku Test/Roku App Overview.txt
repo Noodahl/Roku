@@ -1,0 +1,31 @@
+Roku.cs
+
+This example program was created to investigate some of the API capabilities of ROKU.
+
+It primarily was designed to leverage the ability to query the list of installed apps.
+
+The HTTP client needed to make the approrpriate requests are included in the Roku.cs file.
+
+The apps would then be dynamically set to Subpage Reference list digital signals, by modifying the Signal Name to the following format:
+App: <AppName>-<AppID>
+
+Additionally, the .png file of all the installed apps are stored on the processor in the HTML folder.
+
+The included VTPro project, consists of the Subpage Reference list, which references a subpage containing a Dynamic Image Object.
+
+When the apps are queried and the .png file stored on the processor, the Dynamic Image Objects in the Subpage Reference List, get updated to match the appropriate app image.
+
+Finally, when one of the Image Objects are pressed, the Name gets parsed and the App is launched using the App ID.
+
+Navigation functionality was also tested, using Custom Added Text Console Commands.
+
+For testing purposes, the Console command has the following format:
+
+MakeRequest <Request>
+
+where request can be:
+App - Query the Roku for the installed apps
+Up
+Down
+Home
+Launch <AppID> - Launch an App using its ID

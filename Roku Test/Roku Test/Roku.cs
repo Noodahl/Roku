@@ -25,8 +25,6 @@ namespace Roku_Test
 
         #region Roku IP Connection -- Done
         HttpClient rokuHttpClient;
-        string hostAddress;
-        int portNumber;
         #endregion
 
         #region Roku XML Parser -- Done
@@ -358,7 +356,7 @@ namespace Roku_Test
                         iconFileName = writeToFile(iconData, app.appName);
                         if (iconFileName != "")
                         {
-                            CrestronConsole.PrintLine("File Name = {0}", iconFileName);
+                            //CrestronConsole.PrintLine("File Name = {0}", iconFileName);
                             tempAppInfo.appIcon = iconFileName;
                             completeAppList.Add(tempAppInfo);
                             //CrestronConsole.PrintLine("App {0} - {1} - {2} added at Index {3}", tempAppInfo.appName, tempAppInfo.appId, tempAppInfo.appIcon, appIndex);

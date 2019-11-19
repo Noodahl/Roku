@@ -1,8 +1,8 @@
-﻿MainAssembly=Roku Test.dll:a974cf5a27d6d8c9b1694865550ebf29
+﻿MainAssembly=Roku Test.dll:f4adf7b881119d145cace2009b2bb912
 MainAssemblyMinFirmwareVersion=1.009.0029
 MainAssemblyResource=SimplSharpData.dat:820b61c48c8a2cace82957eed4cc377c
 MainAssemblyResource=SimplSharpData.dat.der:bf862965c00f3e6ec535e4e00e82d30c
-MainAssemblyResource=Test UI.sgd:d5021bf74ce106254f1c4695ef33dadc
+MainAssemblyResource=Test UI.sgd:797ffedfa62725989d19ec13fe0321e4
 MainAssemblyResource=SimplSharpData.dat:820b61c48c8a2cace82957eed4cc377c
 MainAssemblyResource=SimplSharpData.dat.der:bf862965c00f3e6ec535e4e00e82d30c
 ü
@@ -22,6 +22,6 @@ DependencySource=SimplSharpHelperInterface.dll:aed72eb0e19559a3f56708be76445dcd
 DependencyPath=Roku Test.cpz:SimplSharpHelperInterface.dll
 DependencyMainAssembly=SimplSharpHelperInterface.dll:aed72eb0e19559a3f56708be76445dcd
 ü
-DependencySource=SimplSharpPro.exe:0ddc8fed245c2fcf9cd9d9b207598ccc
+DependencySource=SimplSharpPro.exe:2d18f9a3583f935980f03f99272b4853
 DependencyPath=Roku Test.cpz:SimplSharpPro.exe
-DependencyMainAssembly=SimplSharpPro.exe:0ddc8fed245c2fcf9cd9d9b207598ccc
+DependencyMainAssembly=SimplSharpPro.exe:2d18f9a3583f935980f03f99272b4853

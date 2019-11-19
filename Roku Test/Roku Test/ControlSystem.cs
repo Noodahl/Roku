@@ -11,9 +11,7 @@ namespace Roku_Test
 {
     public class ControlSystem : CrestronControlSystem
     {
-        Roku testRoku;
-        BitConverter bitConverter;
-        
+        Roku testRoku;      
         Ts1542 testPanel;
 
         public ControlSystem()
@@ -87,7 +85,7 @@ namespace Roku_Test
             try
             {
 
-                testRoku = new Roku("172.22.253.234", 8060, "Test Rokue", CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, 0));
+                testRoku = new Roku("172.22.3.4", 8060, "Test Roku", CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, 0));
                 testRoku.onResponseProcessed += new EventHandler<RokuEventArgs>(testRokue_onResponseProcessed);
 
                 testPanel = new Ts1542(0x03, this);
@@ -99,6 +97,7 @@ namespace Roku_Test
                 else
                 {
                     testPanel.LoadSmartObjects(string.Format(@"{0}\Test UI.sgd", Directory.GetApplicationDirectory()));
+                    testPanel.SigChange += new SigEventHandler(testPanel_SigChange);
                     foreach (var so in testPanel.SmartObjects)
                     {
                         so.Value.SigChange += new SmartObjectSigChangeEventHandler(Value_SigChange);
@@ -111,9 +110,42 @@ namespace Roku_Test
             }
         }
 
+        void testPanel_SigChange(BasicTriList currentDevice, SigEventArgs args)
+        {
+            switch (args.Sig.BoolValue)
+            {
+                case true:
+                    {
+                        if (args.Sig.Number == 1)
+                        {
+                            RokuRequest("apps");
+                        }
+                        break;
+                    }
+                default:
+                    break;
+            }
+        }
+
         void Value_SigChange(GenericBase currentDevice, SmartObjectEventArgs args)
         {
-            CrestronConsole.PrintLine("Button {0} on {1} pressed", args.Sig.Name, args.SmartObjectArgs.ID);
+            CrestronConsole.PrintLine(@"{0} triggered", args.Sig.Name);
+            if (args.SmartObjectArgs.ID == 2 && args.Sig.Name.ToUpper().Contains("APP"))
+            {
+                switch (args.Sig.BoolValue)
+                {
+                    case true:
+                        {
+                            string[] appInfo;
+                            appInfo = args.Sig.Name.Split('-');
+                            CrestronConsole.PrintLine(@"Launching App : {0}, with ID {1}", appInfo[0], appInfo[1]);
+                            testRoku.MakeRequest(Roku.eRokuRequest.Launch_App, appInfo[1]);
+                            break;
+                        }
+                    default:
+                        break;
+                }
+            }            
         }
 
         void testRokue_onResponseProcessed(object sender, RokuEventArgs e)
@@ -126,9 +158,11 @@ namespace Roku_Test
                     ErrorLog.Notice("Number of Apps is: {0}", e.applicationList.Count);
                     foreach (var app in e.applicationList)
                     {
-                        offset = (e.applicationList.IndexOf(app) * 2) + 1;
+                        int appIndex = e.applicationList.IndexOf(app);
+                        offset = (appIndex * 2) + 1;
                         CrestronConsole.PrintLine(string.Format("App Name: {0} Image URL: {1} -- {2}", app.appName, app.appIcon, app.appId));
                         testPanel.SmartObjects[2].StringInput[string.Format("text-o{0}", offset)].StringValue = app.appName;
+                        testPanel.SmartObjects[2].BooleanOutput[string.Format("press{0}", offset)].Name = string.Format("App: {0}-{1}", app.appName, app.appId);
                         testPanel.SmartObjects[2].StringInput[string.Format("text-o{0}",offset + 1)].StringValue = app.appIcon;
                     }
                     break;
